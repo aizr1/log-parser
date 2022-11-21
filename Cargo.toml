@@ -2,6 +2,8 @@
 name = "log-parser"
 version = "0.1.0"
 edition = "2021"
+authors = ["aizr1"]
+description = "Simple log parser for fitbit-cli logs. Extract Various data from the logs to CSV."
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
