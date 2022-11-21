@@ -27,14 +27,15 @@ jobs:
       - name: Build
         run: cargo build --all --release && mv target/release/log-parser target/release/log-parser_amd64
 
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Pre-Release
+        uses: "marvinpinto/action-automatic-releases@latest"
         with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
           files: |
             target/release/log-parser_amd64
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-win:
     runs-on: windows-latest
@@ -53,13 +54,15 @@ jobs:
       - name: Build
         run: cargo build --all --release
 
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Pre-Release
+        uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          files: target/release/log-parser.exe
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
+          files: |
+            target/release/log-parser.exe
 
   build-mac:
     runs-on: macos-latest
@@ -79,11 +82,13 @@ jobs:
       - name: Build for mac
         run: cargo build --all --release && mv target/release/log-parser target/release/log-parser_darwin
 
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+
+      - name: Pre-Release
+        uses: "marvinpinto/action-automatic-releases@latest"
         with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
           files: |
             target/release/log-parser_darwin
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
