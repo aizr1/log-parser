@@ -31,9 +31,9 @@ jobs:
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
+          automatic_release_tag: "latest-linux"
           prerelease: true
-          title: "Development Build"
+          title: "Development Build Linux"
           files: |
             target/release/log-parser_amd64
 
@@ -58,9 +58,9 @@ jobs:
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
+          automatic_release_tag: "latest-win"
           prerelease: true
-          title: "Development Build"
+          title: "Development Build Windows AMD64"
           files: |
             target/release/log-parser.exe
 
@@ -87,8 +87,8 @@ jobs:
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
+          automatic_release_tag: "latest-macos"
           prerelease: true
-          title: "Development Build"
+          title: "Development Build macOS"
           files: |
             target/release/log-parser_darwin
