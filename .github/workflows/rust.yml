@@ -8,7 +8,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  PROJECT_NAME: log-parser
 
 jobs:
   build:
@@ -26,14 +25,14 @@ jobs:
           override: true
 
       - name: Build
-        run: cargo build --all --release && strip target/release/${PROJECT_NAME} && mv target/release/${PROJECT_NAME} target/release/${PROJECT_NAME}_amd64
+        run: cargo build --all --release && mv target/release/log-parser target/release/log-parser_amd64
 
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            target/release/${PROJECT_NAME}_amd64
+            target/release/log-parser_amd64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -58,7 +57,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: target/release/${PROJECT_NAME}.exe
+          files: target/release/log-parser.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -78,13 +77,13 @@ jobs:
           override: true
 
       - name: Build for mac
-        run: cargo build --all --release && strip target/release/${PROJECT_NAME} && mv target/release/${PROJECT_NAME} target/release/${PROJECT_NAME}_darwin
+        run: cargo build --all --release && mv target/release/log-parser target/release/log-parser_darwin
 
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            target/release/${PROJECT_NAME}_darwin
+            target/release/log-parser_darwin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
