@@ -7,6 +7,7 @@ mod test;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Lines};
 use chrono::{Datelike, DateTime, NaiveDateTime, Timelike, Utc};
+use chrono::format::parse;
 use csv::Writer;
 use regex::Regex;
 use model::ParsedLineResult;
@@ -18,18 +19,31 @@ use crate::regex_pattern::{REGEX_ACCEL_X,
                            REGEX_APP_STRING,
                            REGEX_BPM_HEART_RATE,
                            REGEX_UNIX_EPOCH_MILLI};
+use clap::Parser;
 
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Name of the person to experiment
+    #[arg(short, long, default_value="Waltraud")]
+    name: String,
+
+    /// Name of the log file to parse and export as csv
+    #[arg(short, long, default_value="Test.log")]
+    log_file: String,
+}
 
 fn main() {
+    let args = Args::parse();
 
-    let filename = "Test.log";
+    let filename = args.log_file;
     // Open the file in read-only mode (ignoring errors).
     let file = File::open(filename).unwrap();
     // Read the File to a buffered reader for efficiency
     let reader = BufReader::new(file);
 
     // Prepare file export
-    let now_str = format!("{}_{}", Utc::now().date_naive(), Utc::now().time());
+    let now_str = format!("{}_{}_{}", args.name, Utc::now().date_naive(), Utc::now().time());
     let mut bpm_writer = csv::Writer::from_path(format!("bpm-{}.csv", now_str))
         .expect("cannot init bpm csv writer");
     let mut accel_writer = csv::Writer::from_path(format!("accel-{}.csv", now_str))
