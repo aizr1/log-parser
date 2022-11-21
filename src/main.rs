@@ -6,25 +6,46 @@ mod test;
 
 use std::fs::File;
 use std::io::{BufRead, BufReader, Lines};
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{Datelike, DateTime, NaiveDateTime, Timelike, Utc};
+use csv::Writer;
 use regex::Regex;
 use model::ParsedLineResult;
-use crate::regex_pattern::{REGEX_ACCEL_X, REGEX_ACCEL_Y, REGEX_ACCEL_Z, REGEX_APP_STRING, REGEX_BPM_HEART_RATE, REGEX_UNIX_EPOCH_MILLI};
+use crate::model::{AccelLogLine, BPMLogLine, OutputDataType};
+use crate::model::OutputDataType::{ACCEL, BPM, GYRO, IRRELEVANT};
+use crate::regex_pattern::{REGEX_ACCEL_X,
+                           REGEX_ACCEL_Y,
+                           REGEX_ACCEL_Z,
+                           REGEX_APP_STRING,
+                           REGEX_BPM_HEART_RATE,
+                           REGEX_UNIX_EPOCH_MILLI};
+
 
 fn main() {
+
     let filename = "Test.log";
     // Open the file in read-only mode (ignoring errors).
     let file = File::open(filename).unwrap();
     // Read the File to a buffered reader for efficiency
     let reader = BufReader::new(file);
 
+    // Prepare file export
+    let now_str = format!("{}_{}", Utc::now().date_naive(), Utc::now().time());
+    let mut bpm_writer = csv::Writer::from_path(format!("bpm-{}.csv", now_str))
+        .expect("cannot init bpm csv writer");
+    let mut accel_writer = csv::Writer::from_path(format!("accel-{}.csv", now_str))
+        .expect("cannot init accel csv writer");
+
     // Iterate the lines of the buffered file
-    reader.lines().for_each(
-        |line| {
-            // Parse every line using a regex with capture groups
-            if let Some(line_result) = extract_from_line(&line.unwrap()) {}
+    for line in reader.lines() {
+        // Parse every line using a regex with capture groups
+        if let Some(line_result) = extract_from_line(&line.unwrap()) {
+            match parse_line_result(line_result) {
+                BPM(bpm_log_line) => export_bpm_csv(bpm_log_line, &mut bpm_writer),
+                ACCEL(accel_log_line) => export_accel_csv(accel_log_line, &mut accel_writer),
+                _ => {}
+            }
         }
-    )
+    }
 }
 
 fn extract_from_line(line: &str) -> Option<ParsedLineResult> {
@@ -88,4 +109,54 @@ fn extract_from_line(line: &str) -> Option<ParsedLineResult> {
     } else {
         None
     }
+}
+
+fn parse_line_result(line_result: ParsedLineResult) -> OutputDataType {
+    match line_result {
+
+        // We are interested in BPM and Time
+        ParsedLineResult {
+            time,
+            bpm: Some(bpm),
+            accel_x: None,
+            accel_y: None,
+            accel_z: None,
+            gyro_x: None,
+            gyro_y: None,
+            gyro_z: None,
+        } => {
+            BPM(BPMLogLine { time, bpm })
+        }
+
+        ParsedLineResult {
+            time,
+            bpm: None,
+            accel_x: Some(accel_x),
+            accel_y: Some(accel_y),
+            accel_z: Some(accel_z),
+            gyro_x: None,
+            gyro_y: None,
+            gyro_z: None,
+        } => {
+            ACCEL(AccelLogLine {
+                time,
+                accel_x,
+                accel_y,
+                accel_z,
+            })
+        }
+
+        // Ignore all other struct shapes
+        _ => {
+            IRRELEVANT
+        }
+    }
+}
+
+fn export_bpm_csv(bpm_log_line: BPMLogLine, writer: &mut Writer<File>) {
+    writer.serialize(bpm_log_line).expect("cannot write bpm csv line");
+}
+
+fn export_accel_csv(accel_log_line: AccelLogLine, writer: &mut Writer<File>) {
+    writer.serialize(accel_log_line).expect("cannot write accel csv line");
 }

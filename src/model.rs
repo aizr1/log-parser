@@ -1,31 +1,35 @@
 use chrono::prelude::*;
+use serde::Serialize;
 
 /// LogLine for BPM Data Content
-struct BPMLogLine {
-    time: DateTime<Utc>,
-    bpm: usize,
+#[derive(Debug, Serialize)]
+pub struct BPMLogLine {
+    pub time: DateTime<Utc>,
+    pub bpm: u8,
 }
 
 /// LogLine for Acceleration Data Content
-struct AccelLogLine {
-    time: DateTime<Utc>,
-    accel_x: f32,
-    accel_y: f32,
-    accel_z: f32,
+#[derive(Debug, Serialize)]
+pub struct AccelLogLine {
+    pub time: DateTime<Utc>,
+    pub accel_x: f32,
+    pub accel_y: f32,
+    pub accel_z: f32,
 }
 
 /// LogLine for Gyroscopic Data Content
-struct GyroLogLine {
-    time: DateTime<Utc>,
-    gyro_x: f32,
-    gyro_y: f32,
-    gyro_z: f32,
+#[derive(Debug, Serialize)]
+pub struct GyroLogLine {
+    pub time: DateTime<Utc>,
+    pub gyro_x: f32,
+    pub gyro_y: f32,
+    pub gyro_z: f32,
 }
 
 
 // temporary struct: hold the result of the regex findings
 // easier classification of line content
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ParsedLineResult {
     pub time: DateTime<Utc>,
     pub bpm: Option<u8>,
@@ -56,4 +60,11 @@ impl ParsedLineResult {
             gyro_z: None,
         }
     }
+}
+
+pub enum OutputDataType {
+    BPM(BPMLogLine),
+    ACCEL(AccelLogLine),
+    GYRO(GyroLogLine),
+    IRRELEVANT
 }
