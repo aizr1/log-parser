@@ -12,9 +12,9 @@ pub const REGEX_UNIX_EPOCH_MILLI: &str = r"(unix:)( )(\d{13})";
 pub const REGEX_BPM_HEART_RATE: &str = r"(bpm:)( )(\d{2,3})";
 
 // GYRO DATA REGEX
-pub const REGEX_GYRO_X: &str = r"(gyro_x:)( )(\d{10,12})";
-pub const REGEX_GYRO_Y: &str = r"(gyro_y:)( )(\d{10,12})";
-pub const REGEX_GYRO_Z: &str = r"(gyro_z:)( )(\d{10,12})";
+pub const REGEX_GYRO_X: &str = r"(gyro_x:)( )([+-]?([0-9]*[.])?[0-9]+)";
+pub const REGEX_GYRO_Y: &str = r"(gyro_y:)( )([+-]?([0-9]*[.])?[0-9]+)";
+pub const REGEX_GYRO_Z: &str = r"(gyro_z:)( )([+-]?([0-9]*[.])?[0-9]+)";
 
 // ACCELERATION DATA REGEX
 // Regex seaches for indicator word in first group, then tries to find the floating point number

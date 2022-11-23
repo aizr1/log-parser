@@ -4,6 +4,7 @@ use serde::Serialize;
 /// LogLine for BPM Data Content
 #[derive(Debug, Serialize)]
 pub struct BPMLogLine {
+    pub epoch: i64,
     pub time: DateTime<Utc>,
     pub bpm: u8,
 }
@@ -11,6 +12,7 @@ pub struct BPMLogLine {
 /// LogLine for Acceleration Data Content
 #[derive(Debug, Serialize)]
 pub struct AccelLogLine {
+    pub epoch: i64,
     pub time: DateTime<Utc>,
     pub accel_x: f32,
     pub accel_y: f32,
@@ -20,6 +22,7 @@ pub struct AccelLogLine {
 /// LogLine for Gyroscopic Data Content
 #[derive(Debug, Serialize)]
 pub struct GyroLogLine {
+    pub epoch: i64,
     pub time: DateTime<Utc>,
     pub gyro_x: f32,
     pub gyro_y: f32,
@@ -31,6 +34,7 @@ pub struct GyroLogLine {
 // easier classification of line content
 #[derive(Debug, Serialize)]
 pub struct ParsedLineResult {
+    pub epoch: i64,
     pub time: DateTime<Utc>,
     pub bpm: Option<u8>,
     pub accel_x: Option<f32>,
@@ -50,6 +54,7 @@ impl ParsedLineResult {
                 .unwrap(),
             Utc);
         Self {
+            epoch: epoch_millis,
             time,
             bpm: None,
             accel_x: None,

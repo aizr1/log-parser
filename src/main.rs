@@ -11,14 +11,9 @@ use chrono::format::parse;
 use csv::Writer;
 use regex::Regex;
 use model::ParsedLineResult;
-use crate::model::{AccelLogLine, BPMLogLine, OutputDataType};
+use crate::model::{AccelLogLine, BPMLogLine, GyroLogLine, OutputDataType};
 use crate::model::OutputDataType::{ACCEL, BPM, GYRO, IRRELEVANT};
-use crate::regex_pattern::{REGEX_ACCEL_X,
-                           REGEX_ACCEL_Y,
-                           REGEX_ACCEL_Z,
-                           REGEX_APP_STRING,
-                           REGEX_BPM_HEART_RATE,
-                           REGEX_UNIX_EPOCH_MILLI};
+use crate::regex_pattern::{REGEX_ACCEL_X, REGEX_ACCEL_Y, REGEX_ACCEL_Z, REGEX_APP_STRING, REGEX_BPM_HEART_RATE, REGEX_GYRO_X, REGEX_GYRO_Y, REGEX_GYRO_Z, REGEX_UNIX_EPOCH_MILLI};
 use clap::Parser;
 
 #[derive(Parser, Debug)]
@@ -49,14 +44,17 @@ fn main() {
         .expect("cannot init bpm csv writer");
     let mut accel_writer = csv::Writer::from_path(format!("accel-{}.csv", now_str))
         .expect("cannot init accel csv writer");
+    let mut gyro_writer = csv::Writer::from_path(format!("gyro-{}.csv", now_str))
+        .expect("cannot init gyro csv writer");
 
     // Iterate the lines of the buffered file
     for line in reader.lines() {
         // Parse every line using a regex with capture groups
         if let Some(line_result) = extract_from_line(&line.unwrap()) {
             match parse_line_result(line_result) {
-                BPM(bpm_log_line) => export_bpm_csv(bpm_log_line, &mut bpm_writer),
-                ACCEL(accel_log_line) => export_accel_csv(accel_log_line, &mut accel_writer),
+                BPM(ll) => export_bpm_csv(ll, &mut bpm_writer),
+                ACCEL(ll) => export_accel_csv(ll, &mut accel_writer),
+                GYRO(ll) => export_gyro_csv(ll, &mut gyro_writer),
                 _ => {}
             }
         }
@@ -115,6 +113,31 @@ fn extract_from_line(line: &str) -> Option<ParsedLineResult> {
                 line_result.accel_z = Option::from(trimmed.as_str().parse::<f32>().unwrap());
             }
 
+            // Check for Values of Gyro Activitz
+            let re = Regex::new(REGEX_GYRO_X).unwrap();
+            if let Some(x) = re.find(line) {
+                let mut trimmed = String::from(x.as_str());
+                trimmed.remove_matches("gyro_x: ");
+                println!("{}", trimmed);
+                line_result.gyro_x = Option::from(trimmed.as_str().parse::<f32>().unwrap());
+            }
+
+            let re = Regex::new(REGEX_GYRO_Y).unwrap();
+            if let Some(y) = re.find(line) {
+                let mut trimmed = String::from(y.as_str());
+                trimmed.remove_matches("gyro_y: ");
+                println!("{}", trimmed);
+                line_result.gyro_y = Option::from(trimmed.as_str().parse::<f32>().unwrap());
+            }
+
+            let re = Regex::new(REGEX_GYRO_Z).unwrap();
+            if let Some(z) = re.find(line) {
+                let mut trimmed = String::from(z.as_str());
+                trimmed.remove_matches("gyro_z: ");
+                println!("{}", trimmed);
+                line_result.gyro_z = Option::from(trimmed.as_str().parse::<f32>().unwrap());
+            }
+
             println!("{:#?}", line_result);
 
             Some(line_result)
@@ -131,6 +154,7 @@ fn parse_line_result(line_result: ParsedLineResult) -> OutputDataType {
 
         // We are interested in BPM and Time
         ParsedLineResult {
+            epoch,
             time,
             bpm: Some(bpm),
             accel_x: None,
@@ -140,10 +164,11 @@ fn parse_line_result(line_result: ParsedLineResult) -> OutputDataType {
             gyro_y: None,
             gyro_z: None,
         } => {
-            BPM(BPMLogLine { time, bpm })
+            BPM(BPMLogLine { epoch, time, bpm })
         }
 
         ParsedLineResult {
+            epoch,
             time,
             bpm: None,
             accel_x: Some(accel_x),
@@ -154,14 +179,37 @@ fn parse_line_result(line_result: ParsedLineResult) -> OutputDataType {
             gyro_z: None,
         } => {
             ACCEL(AccelLogLine {
+                epoch,
                 time,
                 accel_x,
                 accel_y,
                 accel_z,
             })
-        }
+        },
 
-        // Ignore all other struct shapes
+
+        ParsedLineResult {
+            epoch,
+            time,
+            bpm: None,
+            accel_x: None,
+            accel_y: None,
+            accel_z: None,
+            gyro_x: Some(gyro_x),
+            gyro_y: Some(gyro_y),
+            gyro_z: Some(gyro_z),
+        } => {
+            GYRO(GyroLogLine {
+                epoch,
+                time,
+                gyro_x,
+                gyro_y,
+                gyro_z,
+            })
+        },
+
+
+                // Ignore all other struct shapes
         _ => {
             IRRELEVANT
         }
@@ -174,4 +222,8 @@ fn export_bpm_csv(bpm_log_line: BPMLogLine, writer: &mut Writer<File>) {
 
 fn export_accel_csv(accel_log_line: AccelLogLine, writer: &mut Writer<File>) {
     writer.serialize(accel_log_line).expect("cannot write accel csv line");
+}
+
+fn export_gyro_csv(gyro_log_line: GyroLogLine, writer: &mut Writer<File>) {
+    writer.serialize(gyro_log_line).expect("cannot write gyro csv line");
 }
