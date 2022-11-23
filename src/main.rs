@@ -6,7 +6,7 @@ mod test;
 
 use std::fs::File;
 use std::io::{BufRead, BufReader, Lines};
-use chrono::{Datelike, DateTime, NaiveDateTime, Timelike, Utc};
+use chrono::{Datelike, DateTime, NaiveDateTime, Timelike, TimeZone, Utc};
 use chrono::format::parse;
 use csv::Writer;
 use regex::Regex;
@@ -25,7 +25,7 @@ use clap::Parser;
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Name of the person to experiment
-    #[arg(short, long, default_value="Waltraud")]
+    #[arg(short, long, default_value="NameProbant")]
     name: String,
 
     /// Name of the log file to parse and export as csv
@@ -43,7 +43,8 @@ fn main() {
     let reader = BufReader::new(file);
 
     // Prepare file export
-    let now_str = format!("{}_{}_{}", args.name, Utc::now().date_naive(), Utc::now().time());
+    let date: DateTime<Utc> = Utc::now();
+    let now_str = format!("{}_{}", args.name, date.format("%Y-%m-%d_%H-%M-%S"));
     let mut bpm_writer = csv::Writer::from_path(format!("bpm-{}.csv", now_str))
         .expect("cannot init bpm csv writer");
     let mut accel_writer = csv::Writer::from_path(format!("accel-{}.csv", now_str))
